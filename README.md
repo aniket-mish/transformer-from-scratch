@@ -1,7 +1,7 @@
 # transformers-from-scratch
 Implementing transformers from scratch for a deeper understanding of the concept
 
-![image](https://github.com/aniket-mish/transformers-from-scratch/assets/71699313/2048264f-f057-474c-a34b-92785009eba8)
+![image](https://github.com/aniket-mish/transformers-from-scratch/assets/71699313/65bc8013-dd6e-4d81-9bf8-f813ace2d977)
 
 
 1. Input Embedding

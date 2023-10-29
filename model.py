@@ -47,3 +47,13 @@ class LayerNormalization(nn.Module):
         mean = x.mean(-1, keepdim=True) # -1 means the last dimension
         std = x.std(-1, keepdim=True)
         return self.alpha * (x - mean) / (std + self.eps) + self.bias
+
+class FeedForward(nn.Module):
+    def __init__(self, d_model: int, d_ff: int, dropout: float = 0.1):
+        super().__init__()
+        self.linear_1 = nn.Linear(d_model, d_ff) # W1 and b1
+        self.dropout = nn.Dropout(dropout)
+        self.linear_2 = nn.Linear(d_ff, d_model) # W2 and b2
+
+    def forward(self, x):
+        return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))

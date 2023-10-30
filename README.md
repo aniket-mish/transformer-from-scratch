@@ -9,3 +9,4 @@ Converts the input tokens into vectors.
 2. Positional Encoding
 Tells the model about the position of a word in the sentence. It is computed once and then reused during training and inference.
 3. Add & Norm
+4. FeedForward

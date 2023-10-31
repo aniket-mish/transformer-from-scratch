@@ -1,8 +1,10 @@
 # transformers-from-scratch
-Implementing transformers from scratch for a deeper understanding of the concept
+
+Implementing transformers from scratch for a deeper understanding of the concepts involved
 
 ![image](https://github.com/aniket-mish/transformers-from-scratch/assets/71699313/65bc8013-dd6e-4d81-9bf8-f813ace2d977)
 
+Transformers contains the following blocks:
 
 1. Input Embedding
 Converts the input tokens into vectors.

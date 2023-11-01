@@ -56,4 +56,6 @@ class FeedForward(nn.Module):
         self.linear_2 = nn.Linear(d_ff, d_model) # W2 and b2
 
     def forward(self, x):
+        # linear_1 converts the shape of x from (batch_size, seq_len, d_model) to (batch_size, seq_len, d_ff)
+        # linear_2 converts the shape of x from (batch_size, seq_len, d_ff) to (batch_size, seq_len, d_model)
         return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))

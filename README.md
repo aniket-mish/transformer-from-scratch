@@ -8,11 +8,17 @@ Implementing transformers from scratch for a deeper understanding of the concept
 
 [Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)
 
+Disadvantages of RNNs:
+- Cannot capture long term dependencies
+- Computationally expensive
+- Vanishing/exploding gradient problem
+- Cannot process inputs in parallel
+
 ![image](https://github.com/aniket-mish/transformers-from-scratch/assets/71699313/65bc8013-dd6e-4d81-9bf8-f813ace2d977)
 
-### Transformers
+## Transformers
 
-Transformers contains the following blocks:
+[The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
 
 ## Input Embedding
 Converts the input tokens into vectors.

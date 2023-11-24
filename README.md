@@ -1,4 +1,4 @@
-# transformers-from-scratch
+# transformer-from-scratch
 
 I am implementing transformers from scratch to understand better the concepts involved.
 

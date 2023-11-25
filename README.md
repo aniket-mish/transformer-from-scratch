@@ -45,3 +45,5 @@ Tells the model about the position of a word in the sentence. It is computed onc
 [2] [Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)
 
 [3] [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
+
+[4] [How a transformer works at inference vs training time](https://www.youtube.com/watch?v=IGu7ivuy1Ag&t=1260s)

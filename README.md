@@ -27,6 +27,9 @@ Disadvantages of RNNs:
 
 ## Input Embedding
 Converts the input tokens into vectors.
+WordPiece
+SentencePiece
+BPE
 
 ## Positional Encoding
 Tells the model about the position of a word in the sentence. It is computed once and then reused during training and inference.
@@ -37,6 +40,9 @@ Tells the model about the position of a word in the sentence. It is computed onc
 
 ## Multi-Head Attention
 
+## how-to-generate
+Greedy search
+Beam search
 
 ## References
 

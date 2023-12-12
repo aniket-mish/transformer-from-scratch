@@ -1,6 +1,6 @@
 # transformer-from-scratch
 
-I am implementing transformers from scratch to understand better the concepts involved.
+I am implementing transformers from scratch to understand better the concepts involved. I am referring to [The Annotated Transformer](http://nlp.seas.harvard.edu/annotated-transformer/).
 
 ## History
 
@@ -53,3 +53,5 @@ Beam search
 [3] [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
 
 [4] [How a transformer works at inference vs training time](https://www.youtube.com/watch?v=IGu7ivuy1Ag&t=1260s)
+
+[5] [The Annotated Transformer](http://nlp.seas.harvard.edu/annotated-transformer/)

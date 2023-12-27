@@ -91,8 +91,18 @@ class MultiHeadAttention(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
 
-    # @staticmethod
-    # def attention(query, key, value, mask=None, dropout=None):
+    @staticmethod
+    def attention(query, key, value, mask=None, dropout=None):
+        "Compute 'Scaled Dot Product Attention'"
+        d_k = query.size(-1)
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k) # can also use @ operator instead of torch.matmul
+        # Apply mask to hide interaction like masking future tokens
+        if mask is not None:
+            attention_scores = attention_scores.masked_fill(mask == 0, -1e9)
+        attention_scores = attention_scores.softmax(dim=-1) # (batch_size, h, max_len, max_len)
+        if dropout is not None:
+            attention_scores = dropout(attention_scores)
+        return attention_scores @ value, attention_scores
 
 
     def forward(self, q, k, v, mask=None):
@@ -106,4 +116,12 @@ class MultiHeadAttention(nn.Module):
         key = key.view(key.size(0), -1, self.h, self.d_k).transpose(1, 2)
         value = value.view(value.size(0), -1, self.h, self.d_k).transpose(1, 2)
 
+        # 2) Apply attention on all the projected vectors in batch.
+        x, self.attention_scores = MultiHeadAttention.attention(query, key, value, mask, self.dropout)
 
+        # 3) "Concat" using a view and apply a final linear.
+        # (batch_size, h, max_len, d_k) => (batch_size, max_len, h, d_k) => (batch_size, max_len, d_model)
+        x = x.transpose(1, 2).contiguous().view(x.shape[0], -1, self.h * self.d_k)
+
+        # (batch_size, max_len, d_model) => (batch_size, max_len, d_model)
+        return self.w_o(x)

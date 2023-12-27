@@ -9,7 +9,6 @@ class InputEmbedding(nn.Module):
         # dictionary kind of layer that maps the input to a vector of dimension d_model
         self.embedding = nn.Embedding(vocab_size, d_model)
 
-
     def forward(self, input):
         return self.embedding(input) * math.sqrt(self.d_model)
 
@@ -71,3 +70,58 @@ class FeedForward(nn.Module):
         # w_1 converts the shape of x from (batch_size, max_len, d_model) to (batch_size, max_len, d_ff)
         # w_2 converts the shape of x from (batch_size, max_len, d_ff) to (batch_size, max_len, d_model)
         return self.w_2(self.dropout(torch.relu(self.w_1(x))))
+
+
+class MultiHeadAttention(nn.Module):
+    
+    def __init__(self, d_model, h, dropout):
+        super().__init__()
+
+        # Make sure d_model is always divisible by h
+        assert d_model % h == 0
+
+        self.d_k = d_model // h
+        self.h = h
+
+        self.w_q = nn.Linear(d_model, d_model) # Wq
+        self.w_k = nn.Linear(d_model, d_model) # Wk
+        self.w_v = nn.Linear(d_model, d_model) # Wv
+
+        self.w_o = nn.Linear(d_model, d_model) # Wo
+        self.dropout = nn.Dropout(dropout)
+
+
+    @staticmethod
+    def attention(query, key, value, mask=None, dropout=None):
+        "Compute 'Scaled Dot Product Attention'"
+        d_k = query.size(-1)
+        attention_scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(d_k) # can also use @ operator instead of torch.matmul
+        # Apply mask to hide interaction like masking future tokens
+        if mask is not None:
+            attention_scores = attention_scores.masked_fill(mask == 0, -1e9)
+        attention_scores = attention_scores.softmax(dim=-1) # (batch_size, h, max_len, max_len)
+        if dropout is not None:
+            attention_scores = dropout(attention_scores)
+        return attention_scores @ value, attention_scores
+
+
+    def forward(self, q, k, v, mask=None):
+        query = self.w_q(q) # (batch_size, max_len, d_model) => (batch_size, max_len, d_model)
+        key = self.w_k(k)
+        value = self.w_v(v)
+
+        # 1) Do all the linear projections in batch from d_model => h x d_k
+        # (batch_size, max_len, d_model) => (batch_size, max_len, h, d_model) => (batch_size, h, max_len, d_k)
+        query = query.view(query.size(0), -1, self.h, self.d_k).transpose(1, 2)
+        key = key.view(key.size(0), -1, self.h, self.d_k).transpose(1, 2)
+        value = value.view(value.size(0), -1, self.h, self.d_k).transpose(1, 2)
+
+        # 2) Apply attention on all the projected vectors in batch.
+        x, self.attention_scores = MultiHeadAttention.attention(query, key, value, mask, self.dropout)
+
+        # 3) "Concat" using a view and apply a final linear.
+        # (batch_size, h, max_len, d_k) => (batch_size, max_len, h, d_k) => (batch_size, max_len, d_model)
+        x = x.transpose(1, 2).contiguous().view(x.shape[0], -1, self.h * self.d_k)
+
+        # (batch_size, max_len, d_model) => (batch_size, max_len, d_model)
+        return self.w_o(x)

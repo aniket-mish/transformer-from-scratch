@@ -1,62 +1,73 @@
 import torch.nn as nn
 import math
 
-class InputEmbeddings(nn.Module):
+class InputEmbedding(nn.Module):
     def __init__(self, vocab_size, d_model):
         super().__init__()
         self.d_model = d_model
-        self.embedding = nn.Embedding(vocab_size, d_model) # dictionary kind of layer that maps the input to a vector of dimension d_model
-        
+
+        # dictionary kind of layer that maps the input to a vector of dimension d_model
+        self.embedding = nn.Embedding(vocab_size, d_model)
+
+
     def forward(self, input):
         return self.embedding(input) * math.sqrt(self.d_model)
+
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, dropout, max_len):
         super().__init__()
         self.dropout = nn.Dropout(p=dropout)
-        self.d_model = d_model
-        self.max_len = max_len # max length of the sentences
 
         # Compute the positional encodings once in log space.
-        pe = torch.zeros(self.max_len, self.d_model)
-        # Create a tensor of shape (max_len, 1)
-        position = torch.arange(0, self.max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, self.d_model, 2) * (-math.log(10000.0) / self.d_model)) # numerically stable
-        # sin for even indices
+        pe = torch.zeros(max_len, d_model)
+        # Create a tensor of shape (max_len, 1).
+        position = torch.arange(0, max_len).unsqueeze(1)
+        # Calculating log before taking exponential is more numerically stable.
+        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
+        # Taking sin for even indices.
         pe[:, 0::2] = torch.sin(position * div_term)
-        # cos for odd indices
+        # Taking cos for odd indices.
         pe[:, 1::2] = torch.cos(position * div_term)
-        # Add a batch dimension (1, max_len, d_model)
+        # Add a batch dimension (1, max_len, d_model).
         pe = pe.unsqueeze(0)
 
-        # lets you save and restore tensors that are not model parameters but are still part of the model state.
-        # for example, a buffer that should not be updated during backpropagation using gradient descent but should be a part of the model's state.
+        # Lets you save and restore tensors that are not model parameters but are still part of the model state.
+        # For example, a buffer that should not be updated during backpropagation using gradient descent but should be a part of the model's state.
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        x = x + self.pe[:, :x.size(1)].requires_grad_(False) # shape and size returns the same thing
+        x = x + self.pe[:, :x.size(1)].requires_grad_(False)
         return self.dropout(x)
 
+
 class LayerNormalization(nn.Module):
-    def __init__(self, eps: float = 1e-6):
+    def __init__(self, eps=1e-6):
         super().__init__()
+        # For numerical stability and to avoid division by zero
         self.eps = eps
-        self.alpha = nn.Parameter(torch.ones(1)) # learnable parameter
-        self.bias = nn.Parameter(torch.zeros(1))
+        # These are learnable parameters(nn.Parameter)
+        self.alpha = nn.Parameter(torch.ones(1)) # multiplied
+        self.bias = nn.Parameter(torch.zeros(1)) # added
 
     def forward(self, x):
-        mean = x.mean(-1, keepdim=True) # -1 means the last dimension
+        # dim=-1 => to calculate mean on the last dimension.
+        # keepdim=True => generally mean cancels the dimension it is applied on, but we want to keep it.
+        mean = x.mean(-1, keepdim=True)
         std = x.std(-1, keepdim=True)
         return self.alpha * (x - mean) / (std + self.eps) + self.bias
 
+
 class FeedForward(nn.Module):
-    def __init__(self, d_model: int, d_ff: int, dropout: float = 0.1):
+    def __init__(self, d_model, d_ff, dropout=0.1):
         super().__init__()
-        self.linear_1 = nn.Linear(d_model, d_ff) # W1 and b1
+        # W1 and b1
+        self.w_1 = nn.Linear(d_model, d_ff) # bias=True by default
+        # W2 and b2
+        self.w_2 = nn.Linear(d_ff, d_model)
         self.dropout = nn.Dropout(dropout)
-        self.linear_2 = nn.Linear(d_ff, d_model) # W2 and b2
 
     def forward(self, x):
-        # linear_1 converts the shape of x from (batch_size, seq_len, d_model) to (batch_size, seq_len, d_ff)
-        # linear_2 converts the shape of x from (batch_size, seq_len, d_ff) to (batch_size, seq_len, d_model)
-        return self.linear_2(self.dropout(torch.relu(self.linear_1(x))))
+        # w_1 converts the shape of x from (batch_size, max_len, d_model) to (batch_size, max_len, d_ff)
+        # w_2 converts the shape of x from (batch_size, max_len, d_ff) to (batch_size, max_len, d_model)
+        return self.w_2(self.dropout(torch.relu(self.w_1(x))))
